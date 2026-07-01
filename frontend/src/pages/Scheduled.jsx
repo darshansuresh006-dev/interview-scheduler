@@ -5,7 +5,6 @@ import { getScheduled, getQueue } from '../api/api';
 function Scheduled() {
   const [interviews, setInterviews] = useState([]);
   const [queueLen, setQueueLen] = useState(0);
-  const [reschedulingId, setReschedulingId] = useState(null);
 
   useEffect(function () {
     getScheduled().then(function (r) { setInterviews(r.data); });
