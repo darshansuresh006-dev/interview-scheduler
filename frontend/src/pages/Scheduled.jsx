@@ -116,7 +116,7 @@ function RescheduleForm({ interviewId, onDone }) {
       return;
     }
 
-    fetch(`http://127.0.0.1:8000/api/v1/interview-requests/${interviewId}/reschedule/`, {
+    fetch(`https://interview-scheduler-ocex.onrender.com/api/v1/interview-requests/${interviewId}/reschedule/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
