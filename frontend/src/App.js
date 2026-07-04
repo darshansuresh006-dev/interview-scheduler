@@ -41,10 +41,30 @@ function BottomNav() {
 function AppContent() {
   const token = localStorage.getItem('auth_token');
   const { pathname } = useLocation();
-  if (!token && pathname !== '/login') {
+  const publicPaths = ['/login', '/signup'];
+
+  // Not logged in and trying to access a protected page -> send to login
+  if (!token && !publicPaths.includes(pathname)) {
     window.location.href = '/login';
     return null;
   }
+
+  // Already logged in but sitting on login/signup -> send to dashboard
+  if (token && publicPaths.includes(pathname)) {
+    window.location.href = '/';
+    return null;
+  }
+
+  // Public pages (login/signup) render without the app shell
+  if (publicPaths.includes(pathname)) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+      </Routes>
+    );
+  }
+
   return (
     <div style={styles.app}>
       <header style={styles.header}>
@@ -72,8 +92,6 @@ function AppContent() {
           <Route path="/interviewers" element={<Interviewers />} />
           <Route path="/requests"     element={<Requests />} />
           <Route path="/scheduled"    element={<Scheduled />} />
-          <Route path="/login"        element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
         </Routes>
       </main>
       <BottomNav />
@@ -169,7 +187,6 @@ const styles = {
     textDecoration: 'none',
     padding: '6px 16px',
     gap: 2,
-    transition: 'color 0.15s',
   },
   navIcon: { fontSize: 20 },
   navLabel: { fontSize: 10, fontWeight: 600 },
