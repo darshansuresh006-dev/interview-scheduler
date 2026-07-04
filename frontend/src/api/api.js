@@ -1,10 +1,30 @@
 import axios from 'axios';
 
-const API_BASE = "https://interview-scheduler-ocex.onrender.com";
+const BASE = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/api/v1';
 
-const api = axios.create({
-  baseURL: API_BASE,
+const api = axios.create({ baseURL: BASE });
+
+// Attach auth token to every request automatically
+api.interceptors.request.use(function(config) {
+  var token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = 'Token ' + token;
+  }
+  return config;
 });
+
+// If token is invalid/expired, send user back to login
+api.interceptors.response.use(
+  function(response) { return response; },
+  function(error) {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('username');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const getDashboard = () =>
   api.get('/interview-requests/dashboard/');
