@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/api/v1';
+const API_BASE = "https://interview-scheduler-ocex.onrender.com";
 
 const api = axios.create({ baseURL: BASE });
 

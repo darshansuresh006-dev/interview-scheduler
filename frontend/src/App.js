@@ -5,6 +5,7 @@ import Interviewers from './pages/Interviewers';
 import Requests from './pages/Requests';
 import Scheduled from './pages/Scheduled';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 
 const navItems = [
   { path: '/',             label: 'Dashboard',    icon: '🏠' },
@@ -72,6 +73,7 @@ function AppContent() {
           <Route path="/requests"     element={<Requests />} />
           <Route path="/scheduled"    element={<Scheduled />} />
           <Route path="/login"        element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
         </Routes>
       </main>
       <BottomNav />

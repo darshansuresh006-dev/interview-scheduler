@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 
+const API_BASE = process.env.REACT_APP_API_URL
+  ? process.env.REACT_APP_API_URL.replace('/api/v1', '')
+  : 'http://127.0.0.1:8000';
+
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -14,15 +18,19 @@ export default function Login() {
     setLoading(true);
     setError('');
 
-    fetch('https://interview-scheduler-ocex.onrender.com/api/auth/login/', {
+    fetch(API_BASE + '/api/auth/login/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username: username, password: password }),
     })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.token) {
-          localStorage.setItem('auth_token', data.token);
+      .then(function(r) {
+        return r.json().then(function(data) {
+          return { ok: r.ok, data: data };
+        });
+      })
+      .then(function(result) {
+        if (result.ok && result.data.token) {
+          localStorage.setItem('auth_token', result.data.token);
           localStorage.setItem('username', username);
           window.location.href = '/';
         } else {
@@ -30,9 +38,11 @@ export default function Login() {
         }
       })
       .catch(function() {
-        setError('Cannot connect to server');
+        setError('Cannot connect to server. It may be waking up — try again in 30 seconds.');
       })
-      .finally(function() { setLoading(false); });
+      .finally(function() {
+        setLoading(false);
+      });
   }
 
   return (
@@ -80,12 +90,17 @@ export default function Login() {
           {loading ? 'Logging in...' : 'Login'}
         </button>
 
+        <p style={styles.switchText}>
+          Don't have an account?{' '}
+          <a href="/signup" style={styles.link}>Sign up</a>
+        </p>
+
         <div style={styles.hint}>
           <p style={styles.hintText}>
-            First time? Create a superuser account:
+            Admin access:
           </p>
           <code style={styles.code}>
-            python manage.py createsuperuser
+            username: admin  |  password: Admin@12345
           </code>
         </div>
       </div>
@@ -169,6 +184,17 @@ const styles = {
     cursor: 'pointer',
     marginTop: 8,
     letterSpacing: '0.02em',
+  },
+  switchText: {
+    textAlign: 'center',
+    fontSize: 13,
+    color: '#64748b',
+    marginTop: 16,
+  },
+  link: {
+    color: '#6366f1',
+    fontWeight: 700,
+    textDecoration: 'none',
   },
   hint: {
     marginTop: 20,
