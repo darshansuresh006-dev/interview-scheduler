@@ -2,7 +2,9 @@ import axios from 'axios';
 
 const API_BASE = "https://interview-scheduler-ocex.onrender.com";
 
-const api = axios.create({ baseURL: BASE });
+const api = axios.create({
+  baseURL: API_BASE,
+});
 
 export const getDashboard = () =>
   api.get('/interview-requests/dashboard/');
