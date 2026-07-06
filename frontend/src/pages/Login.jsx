@@ -95,14 +95,7 @@ export default function Login() {
           <a href="/signup" style={styles.link}>Sign up</a>
         </p>
 
-        <div style={styles.hint}>
-          <p style={styles.hintText}>
-            Admin access:
-          </p>
-          <code style={styles.code}>
-            username: admin  |  password: Admin@12345
-          </code>
-        </div>
+        
       </div>
     </div>
   );
@@ -195,25 +188,5 @@ const styles = {
     color: '#6366f1',
     fontWeight: 700,
     textDecoration: 'none',
-  },
-  hint: {
-    marginTop: 20,
-    padding: '12px 14px',
-    background: '#f8fafc',
-    borderRadius: 10,
-    border: '1px solid #e2e8f0',
-  },
-  hintText: {
-    fontSize: 12,
-    color: '#64748b',
-    margin: '0 0 6px',
-  },
-  code: {
-    fontSize: 11,
-    background: '#1e293b',
-    color: '#a5f3fc',
-    padding: '4px 8px',
-    borderRadius: 6,
-    display: 'block',
-  },
+  }
 };
