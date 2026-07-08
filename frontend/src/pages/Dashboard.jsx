@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getDashboard } from '../api/api';
 
-export default function Dashboard() {
+export default function Dashboard({ isDesktop }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,7 +40,10 @@ export default function Dashboard() {
         Dashboard
       </h2>
 
-      <div className="stat-grid" style={styles.grid}>
+      <div style={{
+        ...styles.grid,
+        gridTemplateColumns: isDesktop ? 'repeat(4, 1fr)' : '1fr 1fr',
+      }}>
         <StatCard label="Total Requests"  value={stats.total_requests || 0}     color="#6366f1" icon="📋" />
         <StatCard label="Scheduled"       value={stats.scheduled || 0}           color="#10b981" icon="✅" />
         <StatCard label="Pending"         value={stats.pending || 0}             color="#f59e0b" icon="⏳" />

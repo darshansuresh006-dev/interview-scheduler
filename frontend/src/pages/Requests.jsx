@@ -12,7 +12,7 @@ const STATUS_CONFIG = {
 
 const FILTERS = ['ALL', 'PENDING', 'SCHEDULED', 'QUEUED', 'RESCHEDULED'];
 
-export default function Requests() {
+export default function Requests({ isDesktop }) {
   const [requests, setRequests] = useState([]);
   const [filter, setFilter] = useState('ALL');
   const [showForm, setShowForm] = useState(false);
@@ -113,10 +113,16 @@ export default function Requests() {
       ) : null}
 
       {showForm ? (
-        <div style={styles.formBox}>
+        <div style={{
+          ...styles.formBox,
+          maxWidth: isDesktop ? 640 : '100%',
+        }}>
           <h3 style={styles.formTitle}>New Interview Request</h3>
 
-          <div className="form-row-2" style={styles.row2}>
+          <div style={{
+            ...styles.row2,
+            gridTemplateColumns: isDesktop ? '1fr 1fr' : '1fr 1fr',
+          }}>
             <div style={styles.field}>
               <label style={styles.label}>Candidate Name *</label>
               <input
@@ -166,7 +172,10 @@ export default function Requests() {
             />
           </div>
 
-          <div className="form-row-2" style={styles.row2}>
+          <div style={{
+            ...styles.row2,
+            gridTemplateColumns: isDesktop ? '1fr 1fr' : '1fr 1fr',
+          }}>
             <div style={styles.field}>
               <label style={styles.label}>Preferred Start *</label>
               <input
@@ -263,87 +272,93 @@ export default function Requests() {
         </div>
       ) : null}
 
-      {filtered.map(function(req) {
-        var sc = STATUS_CONFIG[req.status] || STATUS_CONFIG.PENDING;
-        return (
-          <div key={req.id} style={styles.card}>
-            <div style={styles.cardHeader}>
-              <div>
-                <div style={styles.candidateName}>
-                  {req.candidate_name}
+      <div style={{
+        display: isDesktop ? 'grid' : 'block',
+        gridTemplateColumns: isDesktop ? 'repeat(2, 1fr)' : 'none',
+        gap: isDesktop ? 16 : 0,
+      }}>
+        {filtered.map(function(req) {
+          var sc = STATUS_CONFIG[req.status] || STATUS_CONFIG.PENDING;
+          return (
+            <div key={req.id} style={styles.card}>
+              <div style={styles.cardHeader}>
+                <div>
+                  <div style={styles.candidateName}>
+                    {req.candidate_name}
+                  </div>
+                  <div style={styles.candidateEmail}>
+                    {req.candidate_email}
+                  </div>
                 </div>
-                <div style={styles.candidateEmail}>
-                  {req.candidate_email}
+                <div style={{
+                  ...styles.statusBadge,
+                  background: sc.bg,
+                  color: sc.color,
+                }}>
+                  {sc.icon} {sc.label}
                 </div>
               </div>
-              <div style={{
-                ...styles.statusBadge,
-                background: sc.bg,
-                color: sc.color,
-              }}>
-                {sc.icon} {sc.label}
+
+              <div style={styles.divider} />
+
+              <div style={styles.detailGrid}>
+                <div style={styles.detailItem}>
+                  <div style={styles.detailLabel}>Position</div>
+                  <div style={styles.detailValue}>💼 {req.position}</div>
+                </div>
+                <div style={styles.detailItem}>
+                  <div style={styles.detailLabel}>Duration</div>
+                  <div style={styles.detailValue}>⏱️ {req.duration_minutes} min</div>
+                </div>
+                <div style={styles.detailItem}>
+                  <div style={styles.detailLabel}>Preferred From</div>
+                  <div style={styles.detailValue}>
+                    📅 {new Date(req.preferred_start).toLocaleDateString()}
+                  </div>
+                </div>
+                <div style={styles.detailItem}>
+                  <div style={styles.detailLabel}>Preferred To</div>
+                  <div style={styles.detailValue}>
+                    📅 {new Date(req.preferred_end).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+
+              {req.required_skills && req.required_skills.length > 0 ? (
+                <div style={styles.skillsRow}>
+                  {req.required_skills.map(function(s) {
+                    return (
+                      <span key={s} style={styles.skillTag}>{s}</span>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              {req.status === 'SCHEDULED' ? (
+                <div style={styles.successMsg}>
+                  ✅ Interview successfully scheduled!
+                </div>
+              ) : null}
+              {req.status === 'QUEUED' ? (
+                <div style={styles.queueMsg}>
+                  📭 Waiting for available interviewer...
+                </div>
+              ) : null}
+              {req.status === 'PENDING' ? (
+                <div style={styles.pendingMsg}>
+                  ⏳ Being processed by AI scheduler...
+                </div>
+              ) : null}
+
+              <div style={styles.cardFooter}>
+                <span style={styles.createdAt}>
+                  Created: {new Date(req.created_at).toLocaleString()}
+                </span>
               </div>
             </div>
-
-            <div style={styles.divider} />
-
-            <div style={styles.detailGrid}>
-              <div style={styles.detailItem}>
-                <div style={styles.detailLabel}>Position</div>
-                <div style={styles.detailValue}>💼 {req.position}</div>
-              </div>
-              <div style={styles.detailItem}>
-                <div style={styles.detailLabel}>Duration</div>
-                <div style={styles.detailValue}>⏱️ {req.duration_minutes} min</div>
-              </div>
-              <div style={styles.detailItem}>
-                <div style={styles.detailLabel}>Preferred From</div>
-                <div style={styles.detailValue}>
-                  📅 {new Date(req.preferred_start).toLocaleDateString()}
-                </div>
-              </div>
-              <div style={styles.detailItem}>
-                <div style={styles.detailLabel}>Preferred To</div>
-                <div style={styles.detailValue}>
-                  📅 {new Date(req.preferred_end).toLocaleDateString()}
-                </div>
-              </div>
-            </div>
-
-            {req.required_skills && req.required_skills.length > 0 ? (
-              <div style={styles.skillsRow}>
-                {req.required_skills.map(function(s) {
-                  return (
-                    <span key={s} style={styles.skillTag}>{s}</span>
-                  );
-                })}
-              </div>
-            ) : null}
-
-            {req.status === 'SCHEDULED' ? (
-              <div style={styles.successMsg}>
-                ✅ Interview successfully scheduled!
-              </div>
-            ) : null}
-            {req.status === 'QUEUED' ? (
-              <div style={styles.queueMsg}>
-                📭 Waiting for available interviewer...
-              </div>
-            ) : null}
-            {req.status === 'PENDING' ? (
-              <div style={styles.pendingMsg}>
-                ⏳ Being processed by AI scheduler...
-              </div>
-            ) : null}
-
-            <div style={styles.cardFooter}>
-              <span style={styles.createdAt}>
-                Created: {new Date(req.created_at).toLocaleString()}
-              </span>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -394,7 +409,6 @@ const styles = {
   },
   row2: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
     gap: 10,
   },
   field: { marginBottom: 10 },
@@ -461,6 +475,7 @@ const styles = {
     marginBottom: 12,
     boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
     border: '1px solid #f1f5f9',
+    height: 'fit-content',
   },
   cardHeader: {
     display: 'flex',
