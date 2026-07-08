@@ -26,7 +26,7 @@ export default function Dashboard() {
       <div style={{ textAlign: 'center', padding: 40, color: '#ef4444' }}>
         <p>{error}</p>
         <p style={{ fontSize: 12, color: '#64748b' }}>
-          Make sure Django server is running at port 8000
+          Make sure the server is running and try refreshing.
         </p>
       </div>
     );
@@ -40,7 +40,7 @@ export default function Dashboard() {
         Dashboard
       </h2>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+      <div className="stat-grid" style={styles.grid}>
         <StatCard label="Total Requests"  value={stats.total_requests || 0}     color="#6366f1" icon="📋" />
         <StatCard label="Scheduled"       value={stats.scheduled || 0}           color="#10b981" icon="✅" />
         <StatCard label="Pending"         value={stats.pending || 0}             color="#f59e0b" icon="⏳" />
@@ -91,3 +91,12 @@ function StatCard({ label, value, color, icon }) {
     </div>
   );
 }
+
+const styles = {
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 12,
+    marginBottom: 20,
+  },
+};

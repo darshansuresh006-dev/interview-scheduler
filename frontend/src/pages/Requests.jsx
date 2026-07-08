@@ -39,7 +39,7 @@ export default function Requests() {
   useEffect(function() { load(); }, []);
 
   function showMsg(text, type) {
-    setMsg({ text, type });
+    setMsg({ text: text, type: type });
     setTimeout(function() { setMsg({ text: '', type: '' }); }, 4000);
   }
 
@@ -92,7 +92,6 @@ export default function Requests() {
 
   return (
     <div>
-      {/* Header */}
       <div style={styles.topRow}>
         <h2 style={styles.heading}>Interview Requests</h2>
         <button
@@ -103,7 +102,6 @@ export default function Requests() {
         </button>
       </div>
 
-      {/* Toast message */}
       {msg.text ? (
         <div style={{
           ...styles.toast,
@@ -114,12 +112,11 @@ export default function Requests() {
         </div>
       ) : null}
 
-      {/* New Request Form */}
       {showForm ? (
         <div style={styles.formBox}>
           <h3 style={styles.formTitle}>New Interview Request</h3>
 
-          <div style={styles.row2}>
+          <div className="form-row-2" style={styles.row2}>
             <div style={styles.field}>
               <label style={styles.label}>Candidate Name *</label>
               <input
@@ -169,7 +166,7 @@ export default function Requests() {
             />
           </div>
 
-          <div style={styles.row2}>
+          <div className="form-row-2" style={styles.row2}>
             <div style={styles.field}>
               <label style={styles.label}>Preferred Start *</label>
               <input
@@ -221,7 +218,6 @@ export default function Requests() {
         </div>
       ) : null}
 
-      {/* Filter Tabs */}
       <div style={styles.filterRow}>
         {FILTERS.map(function(f) {
           return (
@@ -252,12 +248,10 @@ export default function Requests() {
         })}
       </div>
 
-      {/* Loading */}
       {loading ? (
         <div style={styles.center}>Loading requests...</div>
       ) : null}
 
-      {/* Empty state */}
       {!loading && filtered.length === 0 ? (
         <div style={styles.empty}>
           <div style={styles.emptyIcon}>📋</div>
@@ -269,13 +263,10 @@ export default function Requests() {
         </div>
       ) : null}
 
-      {/* Request Cards */}
       {filtered.map(function(req) {
         var sc = STATUS_CONFIG[req.status] || STATUS_CONFIG.PENDING;
         return (
           <div key={req.id} style={styles.card}>
-
-            {/* Card Header */}
             <div style={styles.cardHeader}>
               <div>
                 <div style={styles.candidateName}>
@@ -294,10 +285,8 @@ export default function Requests() {
               </div>
             </div>
 
-            {/* Divider */}
             <div style={styles.divider} />
 
-            {/* Details Grid */}
             <div style={styles.detailGrid}>
               <div style={styles.detailItem}>
                 <div style={styles.detailLabel}>Position</div>
@@ -321,7 +310,6 @@ export default function Requests() {
               </div>
             </div>
 
-            {/* Skills */}
             {req.required_skills && req.required_skills.length > 0 ? (
               <div style={styles.skillsRow}>
                 {req.required_skills.map(function(s) {
@@ -332,7 +320,6 @@ export default function Requests() {
               </div>
             ) : null}
 
-            {/* Status specific message */}
             {req.status === 'SCHEDULED' ? (
               <div style={styles.successMsg}>
                 ✅ Interview successfully scheduled!
@@ -349,7 +336,6 @@ export default function Requests() {
               </div>
             ) : null}
 
-            {/* Footer */}
             <div style={styles.cardFooter}>
               <span style={styles.createdAt}>
                 Created: {new Date(req.created_at).toLocaleString()}

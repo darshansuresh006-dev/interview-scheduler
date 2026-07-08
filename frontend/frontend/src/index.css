@@ -11,3 +11,96 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+}
+
+/* ---------- Responsive App Shell ---------- */
+
+.app-shell {
+  min-height: 100vh;
+  background: #f8fafc;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Mobile-first defaults */
+.app-main {
+  padding: 16px;
+  padding-bottom: 90px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.bottom-nav {
+  display: flex;
+}
+
+.side-nav {
+  display: none;
+}
+
+.top-header {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* ---------- Desktop layout (768px and above) ---------- */
+@media (min-width: 768px) {
+  .app-shell {
+    display: flex;
+  }
+
+  .side-nav {
+    display: flex;
+    flex-direction: column;
+    width: 220px;
+    min-height: 100vh;
+    background: #fff;
+    border-right: 1px solid #e2e8f0;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+  }
+
+  .bottom-nav {
+    display: none;
+  }
+
+  .app-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .top-header {
+    max-width: 100%;
+    padding: 16px 32px;
+  }
+
+  .app-main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 32px;
+    padding-bottom: 40px;
+  }
+
+  /* Wider grids on desktop */
+  .stat-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  .form-row-2 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .app-main {
+    max-width: 1300px;
+  }
+}
