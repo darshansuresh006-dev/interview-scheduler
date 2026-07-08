@@ -223,7 +223,6 @@ const styles = {
   navIcon: { fontSize: 20 },
   navLabel: { fontSize: 10, fontWeight: 600 },
 
-  // Sidebar styles (desktop only, shown via CSS media query)
   sideLogo: {
     display: 'flex',
     alignItems: 'center',

@@ -5,6 +5,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #f8fafc;
 }
 
 code {
@@ -16,17 +17,11 @@ code {
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  background: #f8fafc;
-}
-
 /* ---------- Responsive App Shell ---------- */
 
 .app-shell {
   min-height: 100vh;
   background: #f8fafc;
-  font-family: 'Inter', system-ui, sans-serif;
 }
 
 /* Mobile-first defaults */
@@ -89,7 +84,6 @@ body {
     padding-bottom: 40px;
   }
 
-  /* Wider grids on desktop */
   .stat-grid {
     grid-template-columns: repeat(4, 1fr) !important;
   }

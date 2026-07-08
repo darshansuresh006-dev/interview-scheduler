@@ -17,7 +17,7 @@ const navItems = [
 function BottomNav() {
   const { pathname } = useLocation();
   return (
-    <nav style={styles.bottomNav}>
+    <nav className="bottom-nav" style={styles.bottomNav}>
       {navItems.map((item) => (
         <Link
           key={item.path}
@@ -38,24 +38,65 @@ function BottomNav() {
   );
 }
 
+function SideNav() {
+  const { pathname } = useLocation();
+  return (
+    <aside className="side-nav">
+      <div style={styles.sideLogo}>
+        <span style={{ fontSize: 26 }}>🗓️</span>
+        <div>
+          <div style={styles.sideTitle}>Interview</div>
+          <div style={styles.sideTitle}>Scheduler</div>
+        </div>
+      </div>
+      <div style={styles.sideNavItems}>
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            style={{
+              ...styles.sideNavLink,
+              background: pathname === item.path ? '#eef2ff' : 'transparent',
+              color: pathname === item.path ? '#6366f1' : '#475569',
+              fontWeight: pathname === item.path ? 700 : 500,
+            }}
+          >
+            <span style={{ fontSize: 18 }}>{item.icon}</span>
+            {item.label}
+          </Link>
+        ))}
+      </div>
+      <div style={styles.sideFooter}>
+        <button
+          style={styles.sideLogoutBtn}
+          onClick={function() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('username');
+            window.location.href = '/login';
+          }}
+        >
+          Logout
+        </button>
+      </div>
+    </aside>
+  );
+}
+
 function AppContent() {
   const token = localStorage.getItem('auth_token');
   const { pathname } = useLocation();
   const publicPaths = ['/login', '/signup'];
 
-  // Not logged in and trying to access a protected page -> send to login
   if (!token && !publicPaths.includes(pathname)) {
     window.location.href = '/login';
     return null;
   }
 
-  // Already logged in but sitting on login/signup -> send to dashboard
   if (token && publicPaths.includes(pathname)) {
     window.location.href = '/';
     return null;
   }
 
-  // Public pages (login/signup) render without the app shell
   if (publicPaths.includes(pathname)) {
     return (
       <Routes>
@@ -66,35 +107,38 @@ function AppContent() {
   }
 
   return (
-    <div style={styles.app}>
-      <header style={styles.header}>
-        <div style={styles.headerLeft}>
-          <span style={styles.logo}>🗓️</span>
-          <h1 style={styles.title}>Interview Scheduler</h1>
-        </div>
-        <div style={styles.headerRight}>
-          <span style={styles.badge}>AI Powered</span>
-          <button
-            style={styles.logoutBtn}
-            onClick={function() {
-              localStorage.removeItem('auth_token');
-              localStorage.removeItem('username');
-              window.location.href = '/login';
-            }}
-          >
-            Logout
-          </button>
-        </div>
-      </header>
-      <main style={styles.main}>
-        <Routes>
-          <Route path="/"             element={<Dashboard />} />
-          <Route path="/interviewers" element={<Interviewers />} />
-          <Route path="/requests"     element={<Requests />} />
-          <Route path="/scheduled"    element={<Scheduled />} />
-        </Routes>
-      </main>
-      <BottomNav />
+    <div className="app-shell">
+      <SideNav />
+      <div className="app-content">
+        <header className="top-header" style={styles.header}>
+          <div style={styles.headerLeft}>
+            <span style={styles.logo}>🗓️</span>
+            <h1 style={styles.title}>Interview Scheduler</h1>
+          </div>
+          <div style={styles.headerRight}>
+            <span style={styles.badge}>AI Powered</span>
+            <button
+              style={styles.logoutBtn}
+              onClick={function() {
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('username');
+                window.location.href = '/login';
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        </header>
+        <main className="app-main">
+          <Routes>
+            <Route path="/"             element={<Dashboard />} />
+            <Route path="/interviewers" element={<Interviewers />} />
+            <Route path="/requests"     element={<Requests />} />
+            <Route path="/scheduled"    element={<Scheduled />} />
+          </Routes>
+        </main>
+        <BottomNav />
+      </div>
     </div>
   );
 }
@@ -108,13 +152,6 @@ export default function App() {
 }
 
 const styles = {
-  app: {
-    maxWidth: 520,
-    margin: '0 auto',
-    minHeight: '100vh',
-    background: '#f8fafc',
-    fontFamily: 'Inter, system-ui, sans-serif',
-  },
   header: {
     background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
     padding: '14px 20px',
@@ -161,10 +198,6 @@ const styles = {
     cursor: 'pointer',
     fontWeight: 600,
   },
-  main: {
-    padding: '16px',
-    paddingBottom: 90,
-  },
   bottomNav: {
     position: 'fixed',
     bottom: 0,
@@ -174,7 +207,6 @@ const styles = {
     maxWidth: 520,
     background: '#fff',
     borderTop: '1px solid #e2e8f0',
-    display: 'flex',
     justifyContent: 'space-around',
     padding: '6px 0 12px',
     zIndex: 100,
@@ -190,4 +222,50 @@ const styles = {
   },
   navIcon: { fontSize: 20 },
   navLabel: { fontSize: 10, fontWeight: 600 },
+
+  sideLogo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '0 20px 20px',
+    borderBottom: '1px solid #e2e8f0',
+    marginBottom: 16,
+  },
+  sideTitle: {
+    fontSize: 13,
+    fontWeight: 800,
+    color: '#1e293b',
+    lineHeight: 1.3,
+  },
+  sideNavItems: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+    padding: '0 12px',
+    flex: 1,
+  },
+  sideNavLink: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '10px 12px',
+    borderRadius: 10,
+    textDecoration: 'none',
+    fontSize: 14,
+  },
+  sideFooter: {
+    padding: '16px 20px 0',
+    borderTop: '1px solid #e2e8f0',
+  },
+  sideLogoutBtn: {
+    width: '100%',
+    background: '#f1f5f9',
+    color: '#475569',
+    border: 'none',
+    borderRadius: 10,
+    padding: '10px',
+    fontWeight: 600,
+    fontSize: 13,
+    cursor: 'pointer',
+  },
 };
