@@ -1,102 +1,100 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE = process.env.REACT_APP_API_URL?.replace('/api/v1', '') || 'http://127.0.0.1:8000';
-
 export default function Login() {
+  const navigate = useNavigate();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
-  function handleLogin() {
-    if (!username || !password) {
-      setError("Please enter username and password");
-      return;
-    }
-    setLoading(true);
+  const handleLogin = async (e) => {
+    e.preventDefault();
     setError("");
+    setLoading(true);
 
-    fetch(`${API_BASE}/api/auth/login/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    })
-      .then(function (res) {
-        return res.json().then(function (data) {
-          return { ok: res.ok, data, status: res.status };
-        });
-      })
-      .then(function (result) {
-        if (result.ok && result.data.token) {
-          localStorage.setItem("auth_token", result.data.token);
-          localStorage.setItem("username", username);
-          // ✅ FIXED: redirect to "/" not "/dashboard"
-          navigate("/");
-        } else {
-          setError(result.data.detail || "Invalid username or password");
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/auth/login/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username,
+            password,
+          }),
         }
-      })
-      .catch(function () {
-        setError("Cannot connect to server. Try again in 30 seconds.");
-      })
-      .finally(function () {
-        setLoading(false);
-      });
-  }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Save JWT token
+        localStorage.setItem("token", data.access);
+        localStorage.setItem("role", data.role);
+        localStorage.setItem("username", data.username);
+
+        // Redirect based on role
+        if (data.role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/user/dashboard");
+        }
+      } else {
+        setError(data.detail || "Invalid username or password");
+      }
+    } catch (err) {
+      setError("Cannot connect to server.");
+    }
+
+    setLoading(false);
+  };
 
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <div style={styles.logoRow}>
-          <span style={styles.logoEmoji}>📅</span>
-          <h1 style={styles.appName}>Interview Scheduler</h1>
-        </div>
-        <p style={styles.tagline}>AI Powered Interview Management</p>
+        <h2 style={styles.title}>AI Interview Scheduler</h2>
 
-        {error && <div style={styles.errorBox}>{error}</div>}
+        {error && <div style={styles.error}>{error}</div>}
 
-        <div style={styles.field}>
-          <label style={styles.label}>Username</label>
-          <input
-            style={styles.input}
-            type="text"
-            placeholder="Enter username"
-            value={username}
-            onChange={function (e) { setUsername(e.target.value); }}
-            onKeyDown={function (e) { if (e.key === "Enter") handleLogin(); }}
-          />
-        </div>
+        <form onSubmit={handleLogin}>
+          <div style={styles.field}>
+            <label>Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              style={styles.input}
+            />
+          </div>
 
-        <div style={styles.field}>
-          <label style={styles.label}>Password</label>
-          <input
-            style={styles.input}
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={function (e) { setPassword(e.target.value); }}
-            onKeyDown={function (e) { if (e.key === "Enter") handleLogin(); }}
-          />
-        </div>
+          <div style={styles.field}>
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={styles.input}
+            />
+          </div>
 
-        <button
-          style={{ ...styles.loginBtn, opacity: loading ? 0.7 : 1 }}
-          onClick={handleLogin}
-          disabled={loading}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-
-        <p style={styles.switchText}>
-          Don't have an account?{" "}
-          <a href="/signup" style={styles.link}>Sign up</a>
-        </p>
+          <button type="submit" disabled={loading} style={styles.button}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
       </div>
     </div>
   );
 }
+
+/* ===============================
+   SIMPLE CLEAN STYLES
+================================ */
 
 const styles = {
   page: {
@@ -104,41 +102,45 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)",
-    padding: 20,
+    background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
   },
   card: {
-    background: "#fff",
-    borderRadius: 20,
+    background: "white",
     padding: 40,
-    width: 400,
-    maxWidth: "100%",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+    borderRadius: 12,
+    width: 350,
+    boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
   },
-  logoRow: { display: "flex", justifyContent: "center", alignItems: 'center', gap: 10 },
-  logoEmoji: { fontSize: 40 },
-  appName: { fontSize: 22, fontWeight: 800, color: "#1e293b", margin: '8px 0' },
-  tagline: { fontSize: 13, color: "#64748b", textAlign: "center", marginBottom: 30 },
-  errorBox: {
-    background: "#fee2e2", color: "#dc2626", padding: '10px 14px',
-    borderRadius: 8, fontSize: 13, marginBottom: 16, fontWeight: 600,
+  title: {
+    textAlign: "center",
+    marginBottom: 20,
   },
-  field: { marginBottom: 18 },
-  label: {
-    display: 'block', fontSize: 13, fontWeight: 700, color: "#374151",
-    marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.4,
+  field: {
+    marginBottom: 15,
+    display: "flex",
+    flexDirection: "column",
   },
   input: {
-    width: '100%', border: '2px solid #e2e8f0', borderRadius: 10,
-    padding: '12px 14px', fontSize: 15, boxSizing: 'border-box',
-    outline: 'none', transition: 'border-color 0.2s',
+    padding: 10,
+    borderRadius: 6,
+    border: "1px solid #ddd",
+    marginTop: 5,
   },
-  loginBtn: {
-    width: '100%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-    color: '#fff', border: 'none', borderRadius: 12, padding: '14px',
-    fontWeight: 800, fontSize: 16, cursor: 'pointer', marginTop: 8,
-    letterSpacing: '0.02em',
+  button: {
+    width: "100%",
+    padding: 12,
+    borderRadius: 8,
+    border: "none",
+    background: "#6366f1",
+    color: "white",
+    fontWeight: "bold",
+    cursor: "pointer",
   },
-  switchText: { textAlign: 'center', fontSize: 13, color: '#64748b', marginTop: 16 },
-  link: { color: '#6366f1', fontWeight: 700, textDecoration: 'none' },
+  error: {
+    background: "#fee2e2",
+    color: "#b91c1c",
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 6,
+  },
 };
