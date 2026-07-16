@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import Interviewers from './pages/Interviewers';
+import Requests from './pages/Requests';
+import Scheduled from './pages/Scheduled';
 import './App.css';
 
 // Icons as SVG components (no extra packages needed)
@@ -54,12 +58,6 @@ const Icons = {
     </svg>
   ),
 };
-
-// Lazy-load pages (or import directly if no code-splitting needed)
-import Dashboard from './pages/Dashboard';
-import Interviewers from './pages/Interviewers';
-import Requests from './pages/Requests';
-import Scheduled from './pages/Scheduled';
 
 const NAV_ITEMS = [
   { path: '/',             label: 'Dashboard',   Icon: Icons.Dashboard },
