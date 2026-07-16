@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getScheduled, getQueue } from '../api';
+import { getScheduled, getQueue } from '../api/api';
 
 const STATS_CONFIG = [
   { key: 'total',     label: 'Total Requests', color: '#6366f1', bg: '#eef2ff', border: '#6366f1',

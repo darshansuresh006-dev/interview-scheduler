@@ -1,271 +1,179 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import './App.css';
+
+// Icons as SVG components (no extra packages needed)
+const Icons = {
+  Dashboard: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+      <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+    </svg>
+  ),
+  Users: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  ),
+  Clipboard: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+    </svg>
+  ),
+  Calendar: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+  ),
+  Logout: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+  ),
+  Menu: () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  ),
+  Close: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  ),
+  Star: () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+      <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+    </svg>
+  ),
+};
+
+// Lazy-load pages (or import directly if no code-splitting needed)
 import Dashboard from './pages/Dashboard';
 import Interviewers from './pages/Interviewers';
 import Requests from './pages/Requests';
 import Scheduled from './pages/Scheduled';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
 
-const navItems = [
-  { path: '/',             label: 'Dashboard',    icon: '🏠' },
-  { path: '/interviewers', label: 'Interviewers', icon: '👥' },
-  { path: '/requests',     label: 'Requests',     icon: '📋' },
-  { path: '/scheduled',    label: 'Scheduled',    icon: '✅' },
+const NAV_ITEMS = [
+  { path: '/',             label: 'Dashboard',   Icon: Icons.Dashboard },
+  { path: '/interviewers', label: 'Interviewers',Icon: Icons.Users     },
+  { path: '/requests',    label: 'Requests',    Icon: Icons.Clipboard },
+  { path: '/scheduled',   label: 'Scheduled',   Icon: Icons.Calendar  },
 ];
 
-function BottomNav() {
-  const { pathname } = useLocation();
-  return (
-    <nav className="bottom-nav" style={styles.bottomNav}>
-      {navItems.map((item) => (
-        <Link
-          key={item.path}
-          to={item.path}
-          style={{
-            ...styles.navItem,
-            color: pathname === item.path ? '#6366f1' : '#64748b',
-            borderTop: pathname === item.path
-              ? '2px solid #6366f1'
-              : '2px solid transparent',
-          }}
-        >
-          <span style={styles.navIcon}>{item.icon}</span>
-          <span style={styles.navLabel}>{item.label}</span>
-        </Link>
-      ))}
-    </nav>
-  );
-}
+export default function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-function SideNav() {
-  const { pathname } = useLocation();
-  return (
-    <aside className="side-nav">
-      <div style={styles.sideLogo}>
-        <span style={{ fontSize: 26 }}>🗓️</span>
-        <div>
-          <div style={styles.sideTitle}>Interview</div>
-          <div style={styles.sideTitle}>Scheduler</div>
-        </div>
-      </div>
-      <div style={styles.sideNavItems}>
-        {navItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            style={{
-              ...styles.sideNavLink,
-              background: pathname === item.path ? '#eef2ff' : 'transparent',
-              color: pathname === item.path ? '#6366f1' : '#475569',
-              fontWeight: pathname === item.path ? 700 : 500,
-            }}
-          >
-            <span style={{ fontSize: 18 }}>{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
-      </div>
-      <div style={styles.sideFooter}>
-        <button
-          style={styles.sideLogoutBtn}
-          onClick={function() {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('username');
-            window.location.href = '/login';
-          }}
-        >
-          Logout
-        </button>
-      </div>
-    </aside>
-  );
-}
-
-function AppContent() {
-  const token = localStorage.getItem('auth_token');
-  const { pathname } = useLocation();
-  const publicPaths = ['/login', '/signup'];
-
-  if (!token && !publicPaths.includes(pathname)) {
-    window.location.href = '/login';
-    return null;
-  }
-
-  if (token && publicPaths.includes(pathname)) {
-    window.location.href = '/';
-    return null;
-  }
-
-  if (publicPaths.includes(pathname)) {
-    return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-      </Routes>
-    );
-  }
+  const closeSidebar = () => setSidebarOpen(false);
 
   return (
-    <div className="app-shell">
-      <SideNav />
-      <div className="app-content">
-        <header className="top-header" style={styles.header}>
-          <div style={styles.headerLeft}>
-            <span style={styles.logo}>🗓️</span>
-            <h1 style={styles.title}>Interview Scheduler</h1>
-          </div>
-          <div style={styles.headerRight}>
-            <span style={styles.badge}>AI Powered</span>
-            <button
-              style={styles.logoutBtn}
-              onClick={function() {
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('username');
-                window.location.href = '/login';
-              }}
-            >
-              Logout
+    <Router>
+      <div className="app">
+
+        {/* ── Mobile overlay ── */}
+        {sidebarOpen && (
+          <div className="overlay" onClick={closeSidebar} />
+        )}
+
+        {/* ════════════ SIDEBAR ════════════ */}
+        <aside className={`sidebar ${sidebarOpen ? 'sidebar--open' : ''}`}>
+
+          {/* Logo */}
+          <div className="sidebar__logo">
+            <div className="logo-icon">
+              <Icons.Calendar />
+            </div>
+            <div className="logo-text">
+              <span className="logo-title">Interview</span>
+              <span className="logo-sub">Scheduler</span>
+            </div>
+            <button className="icon-btn sidebar__close" onClick={closeSidebar}>
+              <Icons.Close />
             </button>
           </div>
-        </header>
-        <main className="app-main">
-          <Routes>
-            <Route path="/"             element={<Dashboard />} />
-            <Route path="/interviewers" element={<Interviewers />} />
-            <Route path="/requests"     element={<Requests />} />
-            <Route path="/scheduled"    element={<Scheduled />} />
-          </Routes>
-        </main>
-        <BottomNav />
+
+          {/* Navigation */}
+          <nav className="sidebar__nav">
+            <p className="nav-section-label">Main Menu</p>
+            {NAV_ITEMS.map(({ path, label, Icon }) => (
+              <NavLink
+                key={path}
+                to={path}
+                end={path === '/'}
+                className={({ isActive }) =>
+                  `nav-item ${isActive ? 'nav-item--active' : ''}`
+                }
+                onClick={closeSidebar}
+              >
+                <span className="nav-item__icon"><Icon /></span>
+                <span className="nav-item__label">{label}</span>
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Footer */}
+          <div className="sidebar__footer">
+            <div className="user-info">
+              <div className="user-avatar">A</div>
+              <div className="user-details">
+                <span className="user-name">Admin</span>
+                <span className="user-role">Administrator</span>
+              </div>
+            </div>
+            <button className="logout-btn">
+              <Icons.Logout />
+              <span>Logout</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* ════════════ MAIN AREA ════════════ */}
+        <div className="main-wrapper">
+
+          {/* Top Bar */}
+          <header className="topbar">
+            <button
+              className="icon-btn topbar__menu"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Icons.Menu />
+            </button>
+
+            <div className="topbar__brand">
+              <span className="topbar__brand-name">Interview Scheduler</span>
+            </div>
+
+            <div className="topbar__right">
+              <div className="ai-badge">
+                <Icons.Star />
+                <span>AI Powered</span>
+              </div>
+              <button className="topbar__logout-btn">
+                <Icons.Logout />
+                <span>Logout</span>
+              </button>
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <main className="content">
+            <Routes>
+              <Route path="/"             element={<Dashboard />} />
+              <Route path="/interviewers" element={<Interviewers />} />
+              <Route path="/requests"     element={<Requests />} />
+              <Route path="/scheduled"    element={<Scheduled />} />
+            </Routes>
+          </main>
+        </div>
+
       </div>
-    </div>
+    </Router>
   );
 }
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
-  );
-}
-
-const styles = {
-  header: {
-    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-    padding: '14px 20px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-    boxShadow: '0 2px 12px rgba(99,102,241,0.4)',
-  },
-  headerLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-  },
-  logo: { fontSize: 22 },
-  title: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 700,
-    margin: 0,
-  },
-  headerRight: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-  },
-  badge: {
-    background: 'rgba(255,255,255,0.2)',
-    color: '#fff',
-    fontSize: 10,
-    padding: '3px 8px',
-    borderRadius: 20,
-    fontWeight: 600,
-  },
-  logoutBtn: {
-    background: 'rgba(255,255,255,0.15)',
-    color: '#fff',
-    border: '1px solid rgba(255,255,255,0.3)',
-    borderRadius: 8,
-    padding: '5px 12px',
-    fontSize: 12,
-    cursor: 'pointer',
-    fontWeight: 600,
-  },
-  bottomNav: {
-    position: 'fixed',
-    bottom: 0,
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: '100%',
-    maxWidth: 520,
-    background: '#fff',
-    borderTop: '1px solid #e2e8f0',
-    justifyContent: 'space-around',
-    padding: '6px 0 12px',
-    zIndex: 100,
-    boxShadow: '0 -4px 12px rgba(0,0,0,0.06)',
-  },
-  navItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    textDecoration: 'none',
-    padding: '6px 16px',
-    gap: 2,
-  },
-  navIcon: { fontSize: 20 },
-  navLabel: { fontSize: 10, fontWeight: 600 },
-
-  sideLogo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    padding: '0 20px 20px',
-    borderBottom: '1px solid #e2e8f0',
-    marginBottom: 16,
-  },
-  sideTitle: {
-    fontSize: 13,
-    fontWeight: 800,
-    color: '#1e293b',
-    lineHeight: 1.3,
-  },
-  sideNavItems: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 4,
-    padding: '0 12px',
-    flex: 1,
-  },
-  sideNavLink: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    padding: '10px 12px',
-    borderRadius: 10,
-    textDecoration: 'none',
-    fontSize: 14,
-  },
-  sideFooter: {
-    padding: '16px 20px 0',
-    borderTop: '1px solid #e2e8f0',
-  },
-  sideLogoutBtn: {
-    width: '100%',
-    background: '#f1f5f9',
-    color: '#475569',
-    border: 'none',
-    borderRadius: 10,
-    padding: '10px',
-    fontWeight: 600,
-    fontSize: 13,
-    cursor: 'pointer',
-  },
-};
