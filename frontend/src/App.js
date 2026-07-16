@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Interviewers from './pages/Interviewers';
 import Requests from './pages/Requests';
 import Scheduled from './pages/Scheduled';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
-// Icons as SVG components (no extra packages needed)
 const Icons = {
   Dashboard: () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -60,118 +62,147 @@ const Icons = {
 };
 
 const NAV_ITEMS = [
-  { path: '/',             label: 'Dashboard',   Icon: Icons.Dashboard },
-  { path: '/interviewers', label: 'Interviewers',Icon: Icons.Users     },
-  { path: '/requests',    label: 'Requests',    Icon: Icons.Clipboard },
-  { path: '/scheduled',   label: 'Scheduled',   Icon: Icons.Calendar  },
+  { path: '/',             label: 'Dashboard',    Icon: Icons.Dashboard },
+  { path: '/interviewers', label: 'Interviewers', Icon: Icons.Users     },
+  { path: '/requests',     label: 'Requests',     Icon: Icons.Clipboard },
+  { path: '/scheduled',    label: 'Scheduled',    Icon: Icons.Calendar  },
 ];
 
-export default function App() {
+// ── Sidebar + Topbar layout, only shown when logged in ──
+function AppShell({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const navigate = useNavigate();
   const closeSidebar = () => setSidebarOpen(false);
 
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('username');
+    navigate('/login');
+  };
+
   return (
-    <Router>
-      <div className="app">
+    <div className="app">
+      {sidebarOpen && <div className="overlay" onClick={closeSidebar} />}
 
-        {/* ── Mobile overlay ── */}
-        {sidebarOpen && (
-          <div className="overlay" onClick={closeSidebar} />
-        )}
-
-        {/* ════════════ SIDEBAR ════════════ */}
-        <aside className={`sidebar ${sidebarOpen ? 'sidebar--open' : ''}`}>
-
-          {/* Logo */}
-          <div className="sidebar__logo">
-            <div className="logo-icon">
-              <Icons.Calendar />
-            </div>
-            <div className="logo-text">
-              <span className="logo-title">Interview</span>
-              <span className="logo-sub">Scheduler</span>
-            </div>
-            <button className="icon-btn sidebar__close" onClick={closeSidebar}>
-              <Icons.Close />
-            </button>
+      <aside className={`sidebar ${sidebarOpen ? 'sidebar--open' : ''}`}>
+        <div className="sidebar__logo">
+          <div className="logo-icon"><Icons.Calendar /></div>
+          <div className="logo-text">
+            <span className="logo-title">Interview</span>
+            <span className="logo-sub">Scheduler</span>
           </div>
+          <button className="icon-btn sidebar__close" onClick={closeSidebar}>
+            <Icons.Close />
+          </button>
+        </div>
 
-          {/* Navigation */}
-          <nav className="sidebar__nav">
-            <p className="nav-section-label">Main Menu</p>
-            {NAV_ITEMS.map(({ path, label, Icon }) => (
-              <NavLink
-                key={path}
-                to={path}
-                end={path === '/'}
-                className={({ isActive }) =>
-                  `nav-item ${isActive ? 'nav-item--active' : ''}`
-                }
-                onClick={closeSidebar}
-              >
-                <span className="nav-item__icon"><Icon /></span>
-                <span className="nav-item__label">{label}</span>
-              </NavLink>
-            ))}
-          </nav>
+        <nav className="sidebar__nav">
+          <p className="nav-section-label">Main Menu</p>
+          {NAV_ITEMS.map(({ path, label, Icon }) => (
+            <NavLink
+              key={path}
+              to={path}
+              end={path === '/'}
+              className={({ isActive }) =>
+                `nav-item ${isActive ? 'nav-item--active' : ''}`
+              }
+              onClick={closeSidebar}
+            >
+              <span className="nav-item__icon"><Icon /></span>
+              <span className="nav-item__label">{label}</span>
+            </NavLink>
+          ))}
+        </nav>
 
-          {/* Footer */}
-          <div className="sidebar__footer">
-            <div className="user-info">
-              <div className="user-avatar">A</div>
-              <div className="user-details">
-                <span className="user-name">Admin</span>
-                <span className="user-role">Administrator</span>
-              </div>
+        <div className="sidebar__footer">
+          <div className="user-info">
+            <div className="user-avatar">
+              {(localStorage.getItem('username') || 'A')[0].toUpperCase()}
             </div>
-            <button className="logout-btn">
+            <div className="user-details">
+              <span className="user-name">
+                {localStorage.getItem('username') || 'Admin'}
+              </span>
+              <span className="user-role">Administrator</span>
+            </div>
+          </div>
+          <button className="logout-btn" onClick={handleLogout} type="button">
+            <Icons.Logout />
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <div className="main-wrapper">
+        <header className="topbar">
+          <button className="icon-btn topbar__menu" onClick={() => setSidebarOpen(true)}>
+            <Icons.Menu />
+          </button>
+          <div className="topbar__brand">
+            <span className="topbar__brand-name">Interview Scheduler</span>
+          </div>
+          <div className="topbar__right">
+            <div className="ai-badge">
+              <Icons.Star />
+              <span>AI Powered</span>
+            </div>
+            <button className="topbar__logout-btn" onClick={handleLogout} type="button">
               <Icons.Logout />
               <span>Logout</span>
             </button>
           </div>
-        </aside>
+        </header>
 
-        {/* ════════════ MAIN AREA ════════════ */}
-        <div className="main-wrapper">
-
-          {/* Top Bar */}
-          <header className="topbar">
-            <button
-              className="icon-btn topbar__menu"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Icons.Menu />
-            </button>
-
-            <div className="topbar__brand">
-              <span className="topbar__brand-name">Interview Scheduler</span>
-            </div>
-
-            <div className="topbar__right">
-              <div className="ai-badge">
-                <Icons.Star />
-                <span>AI Powered</span>
-              </div>
-              <button className="topbar__logout-btn">
-                <Icons.Logout />
-                <span>Logout</span>
-              </button>
-            </div>
-          </header>
-
-          {/* Page Content */}
-          <main className="content">
-            <Routes>
-              <Route path="/"             element={<Dashboard />} />
-              <Route path="/interviewers" element={<Interviewers />} />
-              <Route path="/requests"     element={<Requests />} />
-              <Route path="/scheduled"    element={<Scheduled />} />
-            </Routes>
-          </main>
-        </div>
-
+        <main className="content">
+          {children}
+        </main>
       </div>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <Routes>
+        {/* Public routes — no sidebar */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* Protected routes — wrapped in AppShell */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <AppShell><Dashboard /></AppShell>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/interviewers"
+          element={
+            <ProtectedRoute>
+              <AppShell><Interviewers /></AppShell>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/requests"
+          element={
+            <ProtectedRoute>
+              <AppShell><Requests /></AppShell>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/scheduled"
+          element={
+            <ProtectedRoute>
+              <AppShell><Scheduled /></AppShell>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </Router>
   );
 }
