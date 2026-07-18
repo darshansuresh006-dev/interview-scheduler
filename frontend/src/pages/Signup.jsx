@@ -22,14 +22,17 @@ export default function Signup() {
     fetch(API_BASE + '/api/auth/signup/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username: username, email: email, password: password }),
     })
-      .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+      .then(function(r) {
+        return r.json().then(function(data) { return { ok: r.ok, data: data }; });
+      })
       .then(function(result) {
         if (result.ok) {
           localStorage.setItem('auth_token', result.data.token);
           localStorage.setItem('username', result.data.username);
-          window.location.href = '/';
+          localStorage.setItem('is_admin', 'false');
+          window.location.href = '/user';
         } else {
           setError(result.data.error || 'Signup failed');
         }
@@ -107,7 +110,7 @@ const styles = {
     minHeight: '100vh', display: 'flex', alignItems: 'center',
     justifyContent: 'center',
     background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-    padding: 20, margin: '-16px', marginBottom: '-90px',
+    padding: 20,
   },
   card: {
     background: '#fff', borderRadius: 20, padding: 28,
