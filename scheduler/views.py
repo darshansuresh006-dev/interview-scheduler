@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import (
@@ -14,9 +14,25 @@ from .services import schedule_interview, reschedule_interview, get_queue
 from .tasks import schedule_interview_task
 
 
+class IsAdminUser(permissions.BasePermission):
+    """Only staff/superuser accounts may access."""
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and (request.user.is_staff or request.user.is_superuser)
+        )
+
+
+def is_admin(user):
+    return bool(user and user.is_authenticated and (user.is_staff or user.is_superuser))
+
+
 class InterviewerViewSet(viewsets.ModelViewSet):
+    """Admin only — manages interviewers and their availability."""
     queryset = Interviewer.objects.filter(is_active=True)
     serializer_class = InterviewerSerializer
+    permission_classes = [IsAdminUser]
 
     @action(detail=True, methods=['post'], url_path='add-slot')
     def add_slot(self, request, pk=None):
@@ -41,13 +57,23 @@ class InterviewerViewSet(viewsets.ModelViewSet):
 
 
 class InterviewRequestViewSet(viewsets.ModelViewSet):
-    queryset = InterviewRequest.objects.all().order_by('-created_at')
+    """
+    Admins see and manage everyone's requests.
+    Regular users only see and manage their own.
+    """
     serializer_class = InterviewRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        qs = InterviewRequest.objects.all().order_by('-created_at')
+        if is_admin(self.request.user):
+            return qs
+        return qs.filter(created_by=self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        interview_request = serializer.save()
+        interview_request = serializer.save(created_by=request.user)
         schedule_interview_task.delay(str(interview_request.id))
         return Response(
             {
@@ -58,9 +84,23 @@ class InterviewRequestViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not is_admin(request.user) and instance.created_by != request.user:
+            return Response(
+                {'error': 'You do not have permission to delete this request.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return super().destroy(request, *args, **kwargs)
+
     @action(detail=True, methods=['post'], url_path='reschedule')
     def reschedule(self, request, pk=None):
         interview_request = self.get_object()
+        if not is_admin(request.user) and interview_request.created_by != request.user:
+            return Response(
+                {'error': 'You do not have permission to reschedule this request.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         serializer = RescheduleSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
@@ -102,46 +142,41 @@ class InterviewRequestViewSet(viewsets.ModelViewSet):
             'queued_ids': queue,
         })
 
-    @action(detail=False, methods=['get'], url_path='dashboard')
+    @action(
+        detail=False, methods=['get'], url_path='dashboard',
+        permission_classes=[IsAdminUser]
+    )
     def dashboard(self, request):
-        try:
-            queue = get_queue()
-            recent = ScheduledInterview.objects.select_related(
-                'request', 'interviewer', 'slot'
-            ).order_by('-scheduled_at')[:5]
+        queue = get_queue()
+        recent = ScheduledInterview.objects.select_related(
+            'request', 'interviewer', 'slot'
+        ).order_by('-scheduled_at')[:5]
 
-            stats = {
-                'total_requests': InterviewRequest.objects.count(),
-                'scheduled': InterviewRequest.objects.filter(
-                    status='SCHEDULED'
-                ).count(),
-                'pending': InterviewRequest.objects.filter(
-                    status='PENDING'
-                ).count(),
-                'queued': InterviewRequest.objects.filter(
-                    status='QUEUED'
-                ).count(),
-                'rescheduled': InterviewRequest.objects.filter(
-                    status='RESCHEDULED'
-                ).count(),
-                'total_interviewers': Interviewer.objects.filter(
-                    is_active=True
-                ).count(),
-                'queue_length': len(queue),
-                'recent_scheduled': ScheduledInterviewSerializer(
-                    recent, many=True
-                ).data,
-            }
-            return Response(stats)
-        except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
- 
+        stats = {
+            'total_requests': InterviewRequest.objects.count(),
+            'scheduled': InterviewRequest.objects.filter(status='SCHEDULED').count(),
+            'pending': InterviewRequest.objects.filter(status='PENDING').count(),
+            'queued': InterviewRequest.objects.filter(status='QUEUED').count(),
+            'rescheduled': InterviewRequest.objects.filter(status='RESCHEDULED').count(),
+            'total_interviewers': Interviewer.objects.filter(is_active=True).count(),
+            'queue_length': len(queue),
+            'recent_scheduled': ScheduledInterviewSerializer(recent, many=True).data,
+        }
+        return Response(stats)
+
 
 class ScheduledInterviewViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = ScheduledInterview.objects.all().select_related(
-        'request', 'interviewer', 'slot'
-    ).order_by('-scheduled_at')
+    """
+    Admins see all scheduled interviews.
+    Regular users only see their own.
+    """
     serializer_class = ScheduledInterviewSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        qs = ScheduledInterview.objects.all().select_related(
+            'request', 'interviewer', 'slot'
+        ).order_by('-scheduled_at')
+        if is_admin(self.request.user):
+            return qs
+        return qs.filter(request__created_by=self.request.user)

@@ -1,11 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.authtoken.views import obtain_auth_token
-from scheduler.auth_views import signup
+from scheduler.auth_views import signup, login_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('scheduler.urls')),
-    path('api/auth/login/', obtain_auth_token),
+    path('api/auth/login/', login_view),
     path('api/auth/signup/', signup),
 ]

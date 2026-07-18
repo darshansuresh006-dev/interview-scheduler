@@ -48,6 +48,13 @@ class InterviewRequest(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='interview_requests'
+    )
     candidate_name = models.CharField(max_length=100)
     candidate_email = models.EmailField()
     position = models.CharField(max_length=100)

@@ -9,7 +9,7 @@ class AvailabilitySlotSerializer(serializers.ModelSerializer):
     class Meta:
         model = AvailabilitySlot
         fields = '__all__'
-        read_only_fields = ['is_booked', 'interviewer']
+        read_only_fields = ['is_booked']
 
     def validate(self, data):
         if data['start_time'] >= data['end_time']:
@@ -41,7 +41,7 @@ class InterviewRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = InterviewRequest
         fields = '__all__'
-        read_only_fields = ['status', 'created_at', 'updated_at']
+        read_only_fields = ['status', 'created_at', 'updated_at', 'created_by']
 
 
 class RescheduleSerializer(serializers.Serializer):
@@ -78,12 +78,3 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = '__all__'
-
-
-class DashboardStatsSerializer(serializers.Serializer):
-    total_requests = serializers.IntegerField()
-    scheduled = serializers.IntegerField()
-    pending = serializers.IntegerField()
-    queued = serializers.IntegerField()
-    total_interviewers = serializers.IntegerField()
-    queue_length = serializers.IntegerField()
