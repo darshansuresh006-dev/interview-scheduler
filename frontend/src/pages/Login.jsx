@@ -5,6 +5,7 @@ const API_BASE = process.env.REACT_APP_API_URL
   : 'http://127.0.0.1:8000';
 
 export default function Login() {
+  const [role, setRole] = useState('user'); // 'admin' | 'user'
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,18 +31,31 @@ export default function Login() {
       })
       .then(function(result) {
         if (result.ok && result.data.token) {
+          const isAdminAccount = !!result.data.is_admin;
+
+          // Guard: block mismatched portal selection
+          if (role === 'admin' && !isAdminAccount) {
+            setError('This account does not have admin access.');
+            setLoading(false);
+            return;
+          }
+          if (role === 'user' && isAdminAccount) {
+            setError('This is an admin account. Please switch to "Admin" above to log in.');
+            setLoading(false);
+            return;
+          }
+
           localStorage.setItem('auth_token', result.data.token);
           localStorage.setItem('username', result.data.username);
-          localStorage.setItem('is_admin', result.data.is_admin ? 'true' : 'false');
-          window.location.href = result.data.is_admin ? '/' : '/user';
+          localStorage.setItem('is_admin', isAdminAccount ? 'true' : 'false');
+          window.location.href = isAdminAccount ? '/' : '/user';
         } else {
           setError((result.data && result.data.error) || 'Invalid username or password');
+          setLoading(false);
         }
       })
       .catch(function() {
         setError('Cannot connect to server. It may be waking up — try again in 30 seconds.');
-      })
-      .finally(function() {
         setLoading(false);
       });
   }
@@ -53,6 +67,29 @@ export default function Login() {
           <span style={styles.logoEmoji}>🗓️</span>
           <h1 style={styles.appName}>Interview Scheduler</h1>
           <p style={styles.tagline}>AI-Powered Interview Management</p>
+        </div>
+
+        <div style={styles.roleToggle}>
+          <button
+            type="button"
+            style={{
+              ...styles.roleBtn,
+              ...(role === 'user' ? styles.roleBtnActive : {}),
+            }}
+            onClick={function() { setRole('user'); setError(''); }}
+          >
+            User
+          </button>
+          <button
+            type="button"
+            style={{
+              ...styles.roleBtn,
+              ...(role === 'admin' ? styles.roleBtnActive : {}),
+            }}
+            onClick={function() { setRole('admin'); setError(''); }}
+          >
+            Admin
+          </button>
         </div>
 
         {error ? <div style={styles.errorBox}>{error}</div> : null}
@@ -86,7 +123,7 @@ export default function Login() {
           onClick={handleLogin}
           disabled={loading}
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Logging in...' : `Login as ${role === 'admin' ? 'Admin' : 'User'}`}
         </button>
 
         <p style={styles.switchText}>
@@ -115,10 +152,33 @@ const styles = {
     maxWidth: 360,
     boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
   },
-  logoBox: { textAlign: 'center', marginBottom: 24 },
+  logoBox: { textAlign: 'center', marginBottom: 20 },
   logoEmoji: { fontSize: 48 },
   appName: { fontSize: 22, fontWeight: 800, color: '#1e293b', margin: '8px 0 4px' },
   tagline: { fontSize: 13, color: '#64748b', margin: 0 },
+  roleToggle: {
+    display: 'flex',
+    background: '#f1f5f9',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 18,
+  },
+  roleBtn: {
+    flex: 1,
+    border: 'none',
+    background: 'transparent',
+    padding: '10px 0',
+    borderRadius: 9,
+    fontWeight: 700,
+    fontSize: 14,
+    color: '#64748b',
+    cursor: 'pointer',
+  },
+  roleBtnActive: {
+    background: '#fff',
+    color: '#6366f1',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+  },
   errorBox: {
     background: '#fee2e2', color: '#dc2626', padding: '10px 14px',
     borderRadius: 10, fontSize: 13, marginBottom: 16, fontWeight: 600,
